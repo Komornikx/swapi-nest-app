@@ -1,0 +1,18 @@
+version: '3'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - '3010:3010'
+    depends_on:
+      - mongo
+    environment:
+      - DATABASE_URI=mongodb://mongo:27017/app_development
+      - API_PORT=3010
+      - API_HOST=0.0.0.0
+  mongo:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
