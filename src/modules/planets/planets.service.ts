@@ -4,42 +4,51 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Planet } from './planets.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
 
+import { Planet } from './planets.interface';
 import axios from '../../utils/axios';
 
 @Injectable()
 export class PlanetsService {
   constructor(
     @Inject('PLANET_MODEL') private readonly planetModel: Model<Planet>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async findAll(query?: any): Promise<Planet[]> {
     const { pageSize, page } = query;
+    delete query.pageSize;
+    delete query.page;
 
     let planets = await this.planetModel
       .find({ ...query }, '-expireAt')
       .limit(pageSize)
       .skip(pageSize * page);
 
-    const req = await axios.get('/planets').catch((err) => {
-      throw new HttpException('SWAPI Request Error', err.response.status);
-    });
+    const fetchedAll = await this.cacheManager.get('planets-fetchedAll');
+    if (planets.length <= 0 || !fetchedAll) {
+      const req = await axios.get('/planets').catch((err) => {
+        throw new HttpException('SWAPI Request Error', err.response.status);
+      });
 
-    if (req.data.results.length <= 0) {
-      throw new NotFoundException('No planets found!');
-    }
+      if (req.data.results.length <= 0) {
+        throw new NotFoundException('No planets found!');
+      }
 
-    const newPlanets: Array<Planet> = req.data.results.map((el) => {
-      return {
-        _id: el.url.split('/')[5], // SWAPI don't return any id inside resource object. Some of the resources don't begin at ID = 1, for ex. get(/starships/1) returns 404
-        ...el,
-      };
-    });
+      const newPlanets: Array<Planet> = req.data.results.map((el) => {
+        return {
+          _id: el.url.split('/')[5],
+          ...el,
+        };
+      });
 
-    for (const planet of newPlanets) {
-      await this.save(planet);
+      for (const planet of newPlanets) {
+        await this.save(planet);
+      }
+      await this.cacheManager.set('planets-fetchedAll', true, 24 * 3600);
     }
 
     planets = await this.planetModel
@@ -52,7 +61,7 @@ export class PlanetsService {
 
   async findById(id: string): Promise<Planet> {
     let planet = await this.planetModel.findById(id, '-expireAt');
-    console.log(planet);
+
     if (!planet) {
       const req = await axios.get(`/planets/${id}`).catch((err) => {
         throw new HttpException(err.response.data.detail, err.response.status);

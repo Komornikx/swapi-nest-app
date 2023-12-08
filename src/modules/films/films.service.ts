@@ -4,40 +4,52 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Film } from './films.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
 
+import { Film } from './films.interface';
 import axios from '../../utils/axios';
 
 @Injectable()
 export class FilmsService {
-  constructor(@Inject('FILM_MODEL') private readonly filmModel: Model<Film>) {}
+  constructor(
+    @Inject('FILM_MODEL') private readonly filmModel: Model<Film>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async findAll(query: any): Promise<Film[]> {
     const { pageSize, page } = query;
+    delete query.pageSize;
+    delete query.page;
 
     let films = await this.filmModel
       .find({ ...query }, '-expireAt')
       .limit(pageSize)
       .skip(pageSize * page);
 
-    const req = await axios.get('/films').catch((err) => {
-      throw new HttpException('SWAPI Request Error', err.response.status);
-    });
+    const fetchedAll = await this.cacheManager.get('films-fetchedAll');
+    if (films.length <= 0 || !fetchedAll) {
+      const req = await axios.get('/films').catch((err) => {
+        throw new HttpException('SWAPI Request Error', err.response.status);
+      });
 
-    if (req.data.results.length <= 0) {
-      throw new NotFoundException('No films found!');
-    }
+      if (req.data.results.length <= 0) {
+        throw new NotFoundException('No films found!');
+      }
 
-    const newFilms: Array<Film> = req.data.results.map((el) => {
-      return {
-        _id: el.url.split('/')[5], // SWAPI don't return any id inside resource object. Some of the resources don't begin at ID = 1, for ex. get(/starships/1) returns 404
-        ...el,
-      };
-    });
+      const newFilms: Array<Film> = req.data.results.map((el) => {
+        return {
+          _id: el.url.split('/')[5],
+          ...el,
+        };
+      });
 
-    for (const film of newFilms) {
-      await this.save(film);
+      for (const film of newFilms) {
+        await this.save(film);
+      }
+
+      await this.cacheManager.set('films-fetchedAll', true, 24 * 3600);
     }
 
     films = await this.filmModel
@@ -76,7 +88,7 @@ export class FilmsService {
   async analysis() {
     let films = await this.findAll({});
 
-    // combine together all openings_crawl for our two analysis
+    // combine together all openings_crawl for two analysis
     const allOpenings = films.map((film) => film.opening_crawl).join(' ');
 
     // A. Extract unique words and their occurrences
@@ -90,6 +102,7 @@ export class FilmsService {
 
     // B. Extract name of a character from the /people API which occures most often in opening_crawl
     const occurencesCount: { [key: string]: number } = {};
+
     const peopleReq = await axios.get('/people');
     const people = peopleReq.data.results;
 

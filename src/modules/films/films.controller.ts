@@ -26,7 +26,7 @@ export class FilmsController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: any): Promise<Object> {
+  async findById(@Param('id') id: string): Promise<Object> {
     if (!id) {
       throw new BadRequestException("ID wasn't passed!");
     }

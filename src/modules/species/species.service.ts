@@ -4,42 +4,52 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Species } from './species.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
 
+import { Species } from './species.interface';
 import axios from '../../utils/axios';
 
 @Injectable()
 export class SpeciesService {
   constructor(
     @Inject('SPECIES_MODEL') private readonly speciesModel: Model<Species>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async findAll(query?: any): Promise<Species[]> {
     const { pageSize, page } = query;
+    delete query.pageSize;
+    delete query.page;
 
     let species = await this.speciesModel
       .find({ ...query }, '-expireAt')
       .limit(pageSize)
       .skip(pageSize * page);
 
-    const req = await axios.get('/species').catch((err) => {
-      throw new HttpException('SWAPI Request Error', err.response.status);
-    });
+    const fetchedAll = await this.cacheManager.get('species-fetchedAll');
+    if (species.length <= 0 || !fetchedAll) {
+      const req = await axios.get('/species').catch((err) => {
+        throw new HttpException('SWAPI Request Error', err.response.status);
+      });
 
-    if (req.data.results.length <= 0) {
-      throw new NotFoundException('No species found!');
-    }
+      if (req.data.results.length <= 0) {
+        throw new NotFoundException('No species found!');
+      }
 
-    const newSpecies: Array<Species> = req.data.results.map((el) => {
-      return {
-        _id: el.url.split('/')[5], // SWAPI don't return any id inside resource object. Some of the resources don't begin at ID = 1, for ex. get(/starships/1) returns 404
-        ...el,
-      };
-    });
+      const newSpecies: Array<Species> = req.data.results.map((el) => {
+        return {
+          _id: el.url.split('/')[5],
+          ...el,
+        };
+      });
 
-    for (const species of newSpecies) {
-      await this.save(species);
+      for (const species of newSpecies) {
+        await this.save(species);
+      }
+
+      await this.cacheManager.set('species-fetchedAll', true, 24 * 3600);
     }
 
     species = await this.speciesModel
