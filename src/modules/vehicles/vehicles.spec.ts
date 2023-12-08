@@ -1,27 +1,67 @@
-import { model } from 'mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
 import { VehiclesController } from './vehicles.controller';
 import { VehiclesService } from './vehicles.service';
-import { VehicleSchema } from './vehicles.schema';
 
-const vehicleModel = model('Vehicle', VehicleSchema);
-// todo
+jest.mock('./vehicles.service');
+
 describe('VehiclesController', () => {
-  let starshipsController: VehiclesController;
-  let starshipsService: VehiclesService;
+  let vehiclesController: VehiclesController;
+  let vehiclesService: VehiclesService;
 
-  beforeEach(() => {
-    starshipsService = new VehiclesService(vehicleModel);
-    starshipsController = new VehiclesController(starshipsService);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [VehiclesController],
+      providers: [VehiclesService],
+    }).compile();
+
+    vehiclesController = module.get<VehiclesController>(VehiclesController);
+    vehiclesService = module.get<VehiclesService>(VehiclesService);
   });
 
   describe('findAll', () => {
     it('should return an array of vehicles', async () => {
-      // const result = ['test'];
-      // jest.spyOn(starshipsService, 'findAll').mockImplementation((result) => {
-      //   console.log(result);
-      // });
-      // expect(await starshipsController.findAll()).toBe(result);
-      return [];
+      const vehicles = [
+        {
+          _id: '4',
+          cargo_capacity: '50000',
+          consumables: '2 months',
+          cost_in_credits: '150000',
+          crew: '46',
+          length: '36.8 ',
+          manufacturer: 'Corellia Mining Corporation',
+          max_atmosphering_speed: '30',
+          model: 'Digger Crawler',
+          name: 'Sand Crawler',
+          passengers: '30',
+          vehicle_class: 'wheeled',
+        },
+      ];
+      jest.spyOn(vehiclesService, 'findAll').mockResolvedValue(vehicles);
+
+      expect(await vehiclesController.findAll()).toEqual(vehicles);
+    });
+  });
+
+  describe('findById', () => {
+    it('should return a vehicle by ID', async () => {
+      const expected = {
+        _id: '4',
+        cargo_capacity: '50000',
+        consumables: '2 months',
+        cost_in_credits: '150000',
+        crew: '46',
+        length: '36.8 ',
+        manufacturer: 'Corellia Mining Corporation',
+        max_atmosphering_speed: '30',
+        model: 'Digger Crawler',
+        name: 'Sand Crawler',
+        passengers: '30',
+        vehicle_class: 'wheeled',
+      };
+      jest.spyOn(vehiclesService, 'findById').mockResolvedValue(expected);
+      const vehicle = await vehiclesController.findById(expected._id);
+      expect(vehiclesService.findById).toBeCalledWith(expected._id);
+      expect(vehicle).toEqual(expected);
     });
   });
 });

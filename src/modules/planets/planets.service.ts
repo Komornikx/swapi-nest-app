@@ -50,8 +50,9 @@ export class PlanetsService {
     return planets;
   }
 
-  async findOne(id: string): Promise<Planet> {
-    let planet = await this.planetModel.findOne({ _id: id }, '-expireAt');
+  async findById(id: string): Promise<Planet> {
+    let planet = await this.planetModel.findById(id, '-expireAt');
+    console.log(planet);
     if (!planet) {
       const req = await axios.get(`/planets/${id}`).catch((err) => {
         throw new HttpException(err.response.data.detail, err.response.status);
@@ -62,7 +63,7 @@ export class PlanetsService {
       }
 
       await this.save({ _id: id, ...req.data });
-      planet = await this.planetModel.findOne({ _id: id }, '-expireAt');
+      planet = await this.planetModel.findById(id, '-expireAt');
     }
 
     return planet;

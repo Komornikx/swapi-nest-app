@@ -50,8 +50,8 @@ export class VehiclesService {
     return vehicles;
   }
 
-  async findOne(id: string): Promise<Vehicle> {
-    let vehicle = await this.vehicleModel.findOne({ _id: id }, '-expireAt');
+  async findById(id: string): Promise<Vehicle> {
+    let vehicle = await this.vehicleModel.findById(id, '-expireAt');
     if (!vehicle) {
       const req = await axios.get(`/vehicles/${id}`).catch((err) => {
         throw new HttpException(err.response.data.detail, err.response.status);
@@ -62,7 +62,7 @@ export class VehiclesService {
       }
 
       await this.save({ _id: id, ...req.data });
-      vehicle = await this.vehicleModel.findOne({ _id: id }, '-expireAt');
+      vehicle = await this.vehicleModel.findById(id, '-expireAt');
     }
 
     return vehicle;

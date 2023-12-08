@@ -19,12 +19,12 @@ export class VehiclesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: any): Promise<Object> {
+  async findById(@Param('id') id: any): Promise<Object> {
     if (!id) {
       throw new BadRequestException("ID wasn't passed!");
     }
 
-    const vehicles = await this.starshipsService.findOne(id);
+    const vehicles = await this.starshipsService.findById(id);
     return vehicles;
   }
 }

@@ -19,12 +19,12 @@ export class SpeciesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: any): Promise<Object> {
+  async findById(@Param('id') id: any): Promise<Object> {
     if (!id) {
       throw new BadRequestException("ID wasn't passed!");
     }
 
-    const species = await this.speciesService.findOne(id);
+    const species = await this.speciesService.findById(id);
     return species;
   }
 }

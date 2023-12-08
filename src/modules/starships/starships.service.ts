@@ -50,8 +50,8 @@ export class StarshipsService {
     return starships;
   }
 
-  async findOne(id: string): Promise<Starship> {
-    let starship = await this.starshipModel.findOne({ _id: id }, '-expireAt');
+  async findById(id: string): Promise<Starship> {
+    let starship = await this.starshipModel.findById(id, '-expireAt');
     if (!starship) {
       const req = await axios.get(`/starships/${id}`).catch((err) => {
         throw new HttpException(err.response.data.detail, err.response.status);
@@ -62,7 +62,7 @@ export class StarshipsService {
       }
 
       await this.save({ _id: id, ...req.data });
-      starship = await this.starshipModel.findOne({ _id: id }, '-expireAt');
+      starship = await this.starshipModel.findById(id, '-expireAt');
     }
 
     return starship;

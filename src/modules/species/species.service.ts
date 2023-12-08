@@ -50,8 +50,8 @@ export class SpeciesService {
     return species;
   }
 
-  async findOne(id: string): Promise<Species> {
-    let species = await this.speciesModel.findOne({ _id: id }, '-expireAt');
+  async findById(id: string): Promise<Species> {
+    let species = await this.speciesModel.findById(id, '-expireAt');
     if (!species) {
       const req = await axios.get(`/species/${id}`).catch((err) => {
         throw new HttpException(err.response.data.detail, err.response.status);
@@ -62,7 +62,7 @@ export class SpeciesService {
       }
 
       await this.save({ _id: id, ...req.data });
-      species = await this.speciesModel.findOne({ _id: id }, '-expireAt');
+      species = await this.speciesModel.findById(id, '-expireAt');
     }
 
     return species;
