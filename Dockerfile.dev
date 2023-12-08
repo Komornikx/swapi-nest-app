@@ -13,11 +13,8 @@ RUN npm install
 # Copy the source code to the working directory
 COPY . .
 
-# Build entire app for prod
-RUN npm run build
-
 # Expose the port that the application will run on
 EXPOSE 3010
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start:dev"]

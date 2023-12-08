@@ -3,7 +3,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: 'Dockerfile.dev'
     ports:
       - '3010:3010'
     depends_on:
