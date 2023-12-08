@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: 'Dockerfile.dev'
     ports:
-      - '3010:3010'
+      - '${API_PORT}:${API_PORT}'
     depends_on:
       - mongo
     environment:
