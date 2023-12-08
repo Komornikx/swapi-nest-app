@@ -9,9 +9,7 @@ services:
     depends_on:
       - mongo
     environment:
-      - DATABASE_URI=mongodb://mongo:27017/app_development
-      - API_PORT=3010
-      - API_HOST=0.0.0.0
+      - DATABASE_URI=mongodb://mongo:27017/swapi-nest
   mongo:
     image: mongo:latest
     ports:
