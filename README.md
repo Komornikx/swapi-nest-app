@@ -56,7 +56,6 @@ Example response:
 }
 ```
 
-</br></br>
 <b>GET - /films/analysis</b> </br>
 
 Returns:
