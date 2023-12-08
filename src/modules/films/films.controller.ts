@@ -7,13 +7,14 @@ import {
 } from '@nestjs/common';
 
 import { FilmsService } from './films.service';
+import { Film } from './films.interface';
 
 @Controller('films')
 export class FilmsController {
   constructor(private filmsService: FilmsService) {}
 
   @Get()
-  async findAll(@Query() query?): Promise<Array<Object>> {
+  async findAll(@Query() query?): Promise<Film[]> {
     let films = await this.filmsService.findAll(query);
 
     return films;
@@ -26,7 +27,7 @@ export class FilmsController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<Object> {
+  async findById(@Param('id') id: string): Promise<Film> {
     if (!id) {
       throw new BadRequestException("ID wasn't passed!");
     }
