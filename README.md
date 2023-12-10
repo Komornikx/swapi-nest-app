@@ -10,7 +10,7 @@ Built using:
 - TypeScript
 - MongoDB (Mongoose)
 
-Data in that application are fetched directly from https://swapi.dev/
+Data in that API are fetched directly from https://swapi.dev/
 
 ## Features
 
@@ -202,6 +202,14 @@ $ npm install
 
 ## Running the app
 
+Create a .env file in the project root and set the necessary environment variables:
+```
+DATABASE_URI=mongodb://localhost:27017/name
+API_PORT=3010
+API_HOST=0.0.0.0
+```
+
+Running Locally
 ```bash
 # development
 $ npm run start
@@ -214,17 +222,16 @@ $ npm run build
 $ npm run start:prod
 ```
 
-Application can be run also in docker
-
+Running using docker
 ```bash
 # development
-$ docker-compose up api
+$ docker-compose up
 
 # build production image
 $ docker build . -t api:latest
 ```
 
-Application works by default on http://localhost:3010
+API works by default on http://localhost:3010
 </br>
 
 ## Test
