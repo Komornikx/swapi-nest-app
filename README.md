@@ -230,8 +230,6 @@ $ docker-compose up
 # build production image
 $ docker build . -t api:latest
 ```
-</br>
-
 ## Test
 
 ```bash
