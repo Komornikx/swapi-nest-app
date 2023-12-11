@@ -230,8 +230,6 @@ $ docker-compose up
 # build production image
 $ docker build . -t api:latest
 ```
-
-API works by default on http://localhost:3010
 </br>
 
 ## Test
