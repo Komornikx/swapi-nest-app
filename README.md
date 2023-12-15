@@ -62,9 +62,7 @@ Example response:
 Returns:
 
 - An array of pairs of unique words from all films openings paired with their
-  number of occurrences in the text. Words should not be empty and should be
-  separated by space or any number of consecutive control characters (i.e
-  carriage return, line feed)
+  number of occurrences in the text.
 - A name of a character from the /people API that appears the most often
   across all of the openings of the film
 
